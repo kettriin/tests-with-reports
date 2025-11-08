@@ -2,6 +2,12 @@ name: Test
 
 on: workflow_dispatch
 
+# Добавляем права для записи в репозиторий
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -22,32 +28,45 @@ jobs:
       # запускаем тесты
       - run: ./gradlew clean test -Dselenide.remote=http://localhost:4444/wd/hub
 
-      # скачиваем историю тестов с gh-pages
-      - uses: actions/checkout@v3
+      # скачиваем историю тестов с gh-pages (если ветка существует)
+      - name: Checkout gh-pages
+        uses: actions/checkout@v3
         if: always()
         continue-on-error: true
         with:
           ref: gh-pages
-          path: gh-pages
+          path: gh-pages-history
 
       # создаем директорию для истории, если её нет
-      - name: Create allure history directory
+      - name: Prepare directories
         if: always()
-        run: mkdir -p gh-pages/allure-history
+        run: |
+          mkdir -p gh-pages-history/allure-history
+          mkdir -p allure-report
 
       # генерируем отчет
       - uses: simple-elf/allure-report-action@master
         if: always()
         with:
-          gh_pages: gh-pages
+          gh_pages: gh-pages-history
           allure_results: build/allure-results
           allure_report: allure-report
           allure_history: allure-history
 
-      # публикуем отчет
-      - uses: peaceiris/actions-gh-pages@v3
+      # копируем сгенерированный отчет в директорию для публикации
+      - name: Prepare report for deployment
         if: always()
+        run: |
+          cp -r allure-report/* gh-pages-history/allure-history/
+          # Создаем индекс для перенаправления на последний отчет
+          echo '<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0; url=./allure-history/"></head></html>' > gh-pages-history/index.html
+
+      # публикуем отчет на GitHub Pages
+      - name: Deploy to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: gh-pages/allure-history
+          publish_dir: gh-pages-history
+          force_orphan: true
