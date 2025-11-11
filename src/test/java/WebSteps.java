@@ -25,9 +25,4 @@ public class WebSteps {
         $(".UiProductTileMain_root__Zk2eh.UiProductTileMain_listing__t356q")
                 .shouldHave(text(serchedProductName));
     }
-
-    @Attachment(value = "Screenshot", type = "image/png", fileExtension = "png")
-    public byte[] takeScreenshot() {
-        return ((TakesScreenshot) WebDriverRunner.getWebDriver()).getScreenshotAs(OutputType.BYTES);
-    }
 }

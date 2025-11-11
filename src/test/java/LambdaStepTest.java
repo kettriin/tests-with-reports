@@ -2,6 +2,7 @@ import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.logevents.SelenideLogger;
 import io.qameta.allure.*;
 import io.qameta.allure.selenide.AllureSelenide;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,6 +25,11 @@ public class LambdaStepTest {
         SelenideLogger.addListener("allure", new AllureSelenide());
     }
 
+    @AfterEach
+    void attachTheSource() {
+        attachment("Source", webdriver().driver().source());
+    }
+
     @CsvSource({
             "хлеб , Хлеб",
             "молоко 3 процента , Молоко ",
@@ -39,18 +45,15 @@ public class LambdaStepTest {
 
         step("Ищем по поисковому запросу через строку поиска", () -> {
             $(".UiSharedInputSearch_input__G0Un1").setValue(searchQuery).pressEnter();
-            attachment("Source", webdriver().driver().source());
         });
 
         step("Видим страницу с результататми поиска", () -> {
             $(".SearchResultsInformer_title__FVcvT").shouldBe(visible);
-            attachment("Source", webdriver().driver().source());
         });
 
         step("Видим товар, соответствующий поисковому запросу", () -> {
             $(".UiProductTileMain_root__Zk2eh.UiProductTileMain_listing__t356q")
                     .shouldHave(text(serchedProductName));
-            attachment("Source", webdriver().driver().source());
         });
     }
 }
