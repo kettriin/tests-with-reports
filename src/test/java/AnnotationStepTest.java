@@ -24,7 +24,7 @@ public class AnnotationStepTest {
     @AfterEach
     void attachTheSource() {
         AttachmentUtils attach = new AttachmentUtils();
-        attach.takeScreenshot();;
+        attach.takeScreenshot();
     }
 
     @CsvSource({
